@@ -40,8 +40,33 @@ describe('token contrast', () => {
   }
 });
 
-it('defines the border and accent tokens for light and dark', () => {
+describe('token pairs from the design', () => {
+  const pairs = [
+    ['on-inverse', 'text'],
+    ['accent-soft-text', 'accent-soft-bg'],
+  ];
   for (const mode of modes) {
-    for (const role of ['border', 'accent']) expect(token(role, mode)).toMatch(/^#/);
+    for (const [fg, bg] of pairs) {
+      it(`${mode}: --${fg} on --${bg} is at least 4.5:1`, () => {
+        expect(contrast(token(fg, mode), token(bg, mode))).toBeGreaterThanOrEqual(4.5);
+      });
+    }
+  }
+
+  // The design draws these as small text only in dark mode (outlined avatars).
+  for (const color of ['category-gold', 'category-mauve']) {
+    for (const surface of surfaces) {
+      it(`dark: --${color} on --${surface} is at least 4.5:1`, () => {
+        expect(contrast(token(color, 'dark'), token(surface, 'dark'))).toBeGreaterThanOrEqual(4.5);
+      });
+    }
+  }
+});
+
+it('defines the other color tokens for light and dark', () => {
+  for (const mode of modes) {
+    for (const role of ['border', 'accent', 'category-gold', 'category-mauve']) {
+      expect(token(role, mode)).toMatch(/^#/);
+    }
   }
 });

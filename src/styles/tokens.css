@@ -19,10 +19,20 @@
   --accent-text: light-dark(#a94a1e, #e07a45);
   --teal: light-dark(#2f6b66, #5fa59c);
 
+  /* Light-mode gold is for dots and shapes only. As text it is under 4.5:1. */
+  --category-gold: light-dark(#a67c1f, #d6a84a);
+  --category-mauve: light-dark(#8a4d7a, #c28ab5);
+
+  --accent-soft-bg: light-dark(#f3dccb, #4a2d1f);
+  --accent-soft-text: light-dark(#8e3e1b, #f2a57a);
+
+  /* Text on a --text colored fill, such as a primary button. */
+  --on-inverse: light-dark(#f5eee2, #1f1813);
+
+  /* The same in both modes, as drawn in the design. */
   --account-1: #e5776a;
   --account-2: #e9b84f;
-  --account-3: light-dark(#8dbe6a, #a3b57e);
-  --account-4: #d6a84a;
+  --account-3: #8dbe6a;
 }
 
 :root[data-theme='light'] {
