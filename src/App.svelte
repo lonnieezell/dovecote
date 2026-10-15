@@ -2,10 +2,12 @@
   import { onMount } from 'svelte';
   import { connectEngine } from './lib/engine';
   import type { EngineClient, EngineEvent } from './lib/protocol';
+  import { THEMES, applyTheme, readTheme, saveTheme, type Theme } from './lib/theme';
 
   let engine: EngineClient | undefined = $state();
   let reply: EngineEvent | undefined = $state();
   let error: string | undefined = $state();
+  let theme: Theme = $state(readTheme(localStorage));
 
   onMount(() => {
     let stop: (() => void) | undefined;
@@ -27,7 +29,23 @@
 </script>
 
 <div class="window">
-  <nav aria-label="Sidebar"><h2>Dovecote</h2></nav>
+  <nav aria-label="Sidebar">
+    <h2>Dovecote</h2>
+    <label>
+      Theme
+      <select
+        bind:value={theme}
+        onchange={() => {
+          applyTheme(theme, document.documentElement);
+          saveTheme(theme, localStorage);
+        }}
+      >
+        {#each THEMES as option}
+          <option value={option}>{option}</option>
+        {/each}
+      </select>
+    </label>
+  </nav>
   <section aria-label="Message list"><h2>Inbox</h2></section>
   <main aria-label="Reading pane">
     <h2>Nothing selected</h2>
@@ -46,7 +64,6 @@
 <style>
   :global(body) {
     margin: 0;
-    font-family: system-ui, sans-serif;
   }
   .window {
     display: grid;
@@ -57,7 +74,7 @@
   }
   .window > * {
     padding: 16px;
-    border-right: 1px solid #ccc;
+    border-right: 1px solid var(--border);
   }
   .window > :last-child {
     border-right: none;

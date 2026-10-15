@@ -1,0 +1,40 @@
+/* Bookshop Warm. Tokens that differ by mode use light-dark(light, dark); color-scheme picks the side. */
+:root {
+  color-scheme: light dark;
+
+  --font-serif: 'Newsreader Variable', Georgia, serif;
+  --font-sans: 'Source Sans 3 Variable', system-ui, sans-serif;
+
+  --bg: light-dark(#fbf7f0, #241d18);
+  --bg-sunken: light-dark(#f5eee2, #1c1612);
+  --bg-raised: light-dark(#fffcf6, #2f2620);
+  --border: light-dark(#dccdb6, #3a2f27);
+
+  --text: light-dark(#2d241d, #f2e8da);
+  --text-secondary: light-dark(#6b5b4c, #cdbfae);
+  --text-muted: light-dark(#7a6a5b, #a8978a);
+
+  /* --accent is for large text (18px and up) and shapes. Use --accent-text for smaller text. */
+  --accent: light-dark(#c0582a, #e07a45);
+  --accent-text: light-dark(#a94a1e, #e07a45);
+  --teal: light-dark(#2f6b66, #5fa59c);
+
+  --account-1: #e5776a;
+  --account-2: #e9b84f;
+  --account-3: light-dark(#8dbe6a, #a3b57e);
+  --account-4: #d6a84a;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
