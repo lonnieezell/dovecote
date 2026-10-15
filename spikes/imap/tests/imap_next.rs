@@ -31,9 +31,15 @@ struct Conn {
 impl Conn {
     async fn connect(addr: &str) -> Conn {
         let tcp = TcpStream::connect(addr).await.unwrap();
-        let mut conn = Conn { stream: Stream::insecure(tcp), client: Client::new(Options::default()), tags: 0 };
+        let mut conn = Conn {
+            stream: Stream::insecure(tcp),
+            client: Client::new(Options::default()),
+            tags: 0,
+        };
         loop {
-            if let Event::GreetingReceived { .. } = conn.stream.next(&mut conn.client).await.unwrap() {
+            if let Event::GreetingReceived { .. } =
+                conn.stream.next(&mut conn.client).await.unwrap()
+            {
                 return conn;
             }
         }
@@ -41,19 +47,28 @@ impl Conn {
 
     async fn login(addr: &str, user: &str) -> Conn {
         let mut conn = Conn::connect(addr).await;
-        conn.run(CommandBody::login(user.to_string(), PASSWORD).unwrap()).await;
+        conn.run(CommandBody::login(user.to_string(), PASSWORD).unwrap())
+            .await;
         conn
     }
 
     async fn run(&mut self, body: CommandBody<'static>) -> Reply {
         self.tags += 1;
         let tag = Tag::try_from(format!("A{}", self.tags)).unwrap();
-        self.client.enqueue_command(Command { tag: tag.clone(), body });
-        let mut reply = Reply { data: Vec::new(), untagged: Vec::new() };
+        self.client.enqueue_command(Command {
+            tag: tag.clone(),
+            body,
+        });
+        let mut reply = Reply {
+            data: Vec::new(),
+            untagged: Vec::new(),
+        };
         loop {
             match self.stream.next(&mut self.client).await.unwrap() {
                 Event::DataReceived { data } => reply.data.push(data),
-                Event::StatusReceived { status: Status::Tagged(tagged) } if tagged.tag == tag => {
+                Event::StatusReceived {
+                    status: Status::Tagged(tagged),
+                } if tagged.tag == tag => {
                     assert_eq!(tagged.body.kind, StatusKind::Ok, "{:?}", tagged.body);
                     return reply;
                 }
@@ -88,14 +103,26 @@ fn fetched_uids(data: &[Data<'static>]) -> Vec<u32> {
 #[tokio::test]
 async fn connects_and_fetches_a_message() {
     let user = unique_user("in-fetch");
-    Seeder::login(&user).await.append(&sample_message("fetch-me")).await;
+    Seeder::login(&user)
+        .await
+        .append(&sample_message("fetch-me"))
+        .await;
 
     let mut conn = Conn::login(&addr(), &user).await;
     conn.run(CommandBody::select("INBOX").unwrap()).await;
-    let reply = conn.run(fetch_items(vec![MessageDataItemName::Uid, MessageDataItemName::Envelope], true)).await;
+    let reply = conn
+        .run(fetch_items(
+            vec![MessageDataItemName::Uid, MessageDataItemName::Envelope],
+            true,
+        ))
+        .await;
 
     assert_eq!(fetched_uids(&reply.data), [1]);
-    assert!(format!("{:?}", reply.data).contains("fetch-me"), "{:?}", reply.data);
+    assert!(
+        format!("{:?}", reply.data).contains("fetch-me"),
+        "{:?}",
+        reply.data
+    );
 }
 
 #[tokio::test]
@@ -104,18 +131,27 @@ async fn idle_wakes_when_mail_arrives() {
     let mut conn = Conn::login(&addr(), &user).await;
     conn.run(CommandBody::select("INBOX").unwrap()).await;
 
-    conn.client.enqueue_command(Command { tag: Tag::try_from("IDLE1").unwrap(), body: CommandBody::Idle });
+    conn.client.enqueue_command(Command {
+        tag: Tag::try_from("IDLE1").unwrap(),
+        body: CommandBody::Idle,
+    });
     loop {
         if let Event::IdleAccepted { .. } = conn.stream.next(&mut conn.client).await.unwrap() {
             break;
         }
     }
 
-    Seeder::login(&user).await.append(&sample_message("idle-wake")).await;
+    Seeder::login(&user)
+        .await
+        .append(&sample_message("idle-wake"))
+        .await;
 
     let pushed = timeout(Duration::from_secs(10), async {
         loop {
-            if let Event::DataReceived { data: Data::Exists(1) } = conn.stream.next(&mut conn.client).await.unwrap() {
+            if let Event::DataReceived {
+                data: Data::Exists(1),
+            } = conn.stream.next(&mut conn.client).await.unwrap()
+            {
                 return;
             }
         }
@@ -125,7 +161,10 @@ async fn idle_wakes_when_mail_arrives() {
 
     conn.client.set_idle_done().unwrap();
     loop {
-        if let Event::StatusReceived { status: Status::Tagged(_) } = conn.stream.next(&mut conn.client).await.unwrap() {
+        if let Event::StatusReceived {
+            status: Status::Tagged(_),
+        } = conn.stream.next(&mut conn.client).await.unwrap()
+        {
             break;
         }
     }
@@ -159,9 +198,14 @@ async fn condstore_returns_only_changed_flags() {
 
     seeder.add_flag(2, "\\Seen").await;
 
-    let mut fetch = fetch_items(vec![MessageDataItemName::Uid, MessageDataItemName::Flags], true);
+    let mut fetch = fetch_items(
+        vec![MessageDataItemName::Uid, MessageDataItemName::Flags],
+        true,
+    );
     if let CommandBody::Fetch { modifiers, .. } = &mut fetch {
-        modifiers.push(FetchModifier::ChangedSince(NonZeroU64::new(modseq.get()).unwrap()));
+        modifiers.push(FetchModifier::ChangedSince(
+            NonZeroU64::new(modseq.get()).unwrap(),
+        ));
     }
     let reply = conn.run(fetch).await;
     assert_eq!(fetched_uids(&reply.data), [2]);
@@ -184,9 +228,20 @@ async fn gmail_attributes_are_rejected_but_recoverable_from_discarded_bytes() {
         panic!("expected a malformed message, got {error:?}");
     };
     let discarded = String::from_utf8_lossy(discarded_bytes.declassify()).into_owned();
-    assert!(discarded.contains(&format!("X-GM-THRID {GMAIL_THR_ID}")), "{discarded}");
+    assert!(
+        discarded.contains(&format!("X-GM-THRID {GMAIL_THR_ID}")),
+        "{discarded}"
+    );
 
     let next = conn.stream.next(&mut conn.client).await.unwrap();
-    assert!(matches!(next, Event::StatusReceived { status: Status::Tagged(_) }), "{next:?}");
+    assert!(
+        matches!(
+            next,
+            Event::StatusReceived {
+                status: Status::Tagged(_)
+            }
+        ),
+        "{next:?}"
+    );
     conn.run(CommandBody::Noop).await;
 }

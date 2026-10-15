@@ -22,7 +22,10 @@ pub fn addr() -> String {
 
 /// Dovecot accepts any user name, and each name gets its own empty mailbox.
 pub fn unique_user(prefix: &str) -> String {
-    let nanos = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
     format!("{prefix}-{}-{nanos}", std::process::id())
 }
 
@@ -43,7 +46,10 @@ impl Seeder {
         let tcp = TcpStream::connect(addr())
             .await
             .expect("is Dovecot running? see spikes/imap/README.md");
-        let mut seeder = Seeder { reader: BufReader::new(tcp), next_tag: 1 };
+        let mut seeder = Seeder {
+            reader: BufReader::new(tcp),
+            next_tag: 1,
+        };
         let mut greeting = String::new();
         seeder.reader.read_line(&mut greeting).await.unwrap();
         seeder.run(&format!("LOGIN {user} {PASSWORD}")).await;
@@ -78,10 +84,13 @@ impl Seeder {
             let mut line = String::new();
             let read = self.reader.read_line(&mut line).await.unwrap();
             assert!(read > 0, "server closed: {lines:?}");
-            let done = line.starts_with(tag);
+            let done = line.starts_with(&format!("{tag} "));
             lines.push(line);
             if done {
-                assert!(lines.last().unwrap().contains(" OK"), "command failed: {lines:?}");
+                assert!(
+                    lines.last().unwrap().contains(" OK"),
+                    "command failed: {lines:?}"
+                );
                 return lines;
             }
         }

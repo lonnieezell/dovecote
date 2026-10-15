@@ -52,7 +52,7 @@ One account connected and sitting in IDLE, on macOS, in a release build. Residen
 | async-imap, one IDLE connection | 2.0 MB |
 | imap-next, one IDLE connection | 1.7 to 2.2 MB |
 
-The cost of one idle account is 0.2 to 0.4 MB for either crate. That is smaller than the run-to-run noise. Four accounts with two connections each would add a few megabytes. The target in the spec is 250 MB for all processes, and the IMAP crate is not what will use it.
+The cost of one idle account is 0.2 to 0.4 MB for either crate. That is smaller than the run-to-run noise, so these numbers cannot rank the two crates, and memory played no part in the choice. They only show that an idle connection is cheap. Four accounts with two connections each would add a few megabytes. The target in the spec is 250 MB for all processes, and the IMAP crate is not what will use it.
 
 Two limits on this number:
 
