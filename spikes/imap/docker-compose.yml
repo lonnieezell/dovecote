@@ -1,0 +1,13 @@
+services:
+  dovecot:
+    image: dovecot/dovecot:2.4.5
+    environment:
+      USER_PASSWORD: secret
+    ports:
+      - "31143:31143"
+    healthcheck:
+      test: ["CMD", "doveadm", "service", "status"]
+      interval: 1s
+      retries: 30
+    volumes:
+      - ./dovecot/test.conf:/etc/dovecot/conf.d/zz-test.conf:ro

@@ -28,3 +28,12 @@ jobs:
       - run: pnpm test
       - run: pnpm exec playwright install --with-deps webkit
       - run: pnpm e2e
+
+  imap-spike:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose -f spikes/imap/docker-compose.yml up -d --wait
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test -p imap-spike

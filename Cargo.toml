@@ -1,3 +1,4 @@
 [workspace]
 resolver = "2"
-members = ["engine", "src-tauri"]
+members = ["engine", "src-tauri", "spikes/imap"]
+default-members = ["engine", "src-tauri"]
