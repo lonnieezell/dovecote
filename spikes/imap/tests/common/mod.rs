@@ -1,5 +1,5 @@
 //! Helpers shared by the crate tests. Seeding goes over a plain TCP socket, so it does not
-//! depend on the crate under test.
+//! depend on the crates under test. `login` uses async-imap.
 
 // Each test file compiles this module on its own and uses a different part of it.
 #![allow(dead_code)]
@@ -15,6 +15,15 @@ use tokio::{
 };
 
 pub const PASSWORD: &str = "secret";
+
+pub async fn login(addr: &str, user: &str) -> async_imap::Session<TcpStream> {
+    let client = async_imap::Client::new(TcpStream::connect(addr).await.unwrap());
+    client
+        .login(user, PASSWORD)
+        .await
+        .map_err(|(e, _)| e)
+        .unwrap()
+}
 
 pub fn addr() -> String {
     std::env::var("IMAP_SPIKE_ADDR").unwrap_or_else(|_| "127.0.0.1:31143".into())
@@ -107,6 +116,7 @@ pub struct FakeGmail {
 
 pub const GMAIL_MSG_ID: u64 = 1278455344230334865;
 pub const GMAIL_THR_ID: u64 = 1278455344230334866;
+const GMAIL_CAPS: &str = "IMAP4rev1 IDLE X-GM-EXT-1";
 
 impl FakeGmail {
     pub async fn start() -> Self {
@@ -117,8 +127,12 @@ impl FakeGmail {
         tokio::spawn(async move {
             let (tcp, _) = listener.accept().await.unwrap();
             let mut reader = BufReader::new(tcp);
-            let greeting = b"* OK [CAPABILITY IMAP4rev1 X-GM-EXT-1] ready\r\n";
-            reader.get_mut().write_all(greeting).await.unwrap();
+            let greeting = format!("* OK [CAPABILITY {GMAIL_CAPS}] ready\r\n");
+            reader
+                .get_mut()
+                .write_all(greeting.as_bytes())
+                .await
+                .unwrap();
             loop {
                 let mut line = String::new();
                 if reader.read_line(&mut line).await.unwrap() == 0 {
@@ -135,7 +149,15 @@ impl FakeGmail {
                         "* 1 FETCH (UID 1 X-GM-MSGID {GMAIL_MSG_ID} X-GM-THRID {GMAIL_THR_ID} \
                          X-GM-LABELS (\"\\\\Inbox\" Work))\r\n{tag} OK done\r\n"
                     ),
-                    ("SELECT", _) => format!(
+                    ("CAPABILITY", _) => {
+                        format!("* CAPABILITY {GMAIL_CAPS}\r\n{tag} OK done\r\n")
+                    }
+                    ("LIST", _) => format!(
+                        "* LIST (\\HasNoChildren) \"/\" \"INBOX\"\r\n\
+                         * LIST (\\HasNoChildren \\Sent) \"/\" \"[Gmail]/Sent Mail\"\r\n\
+                         {tag} OK done\r\n"
+                    ),
+                    ("SELECT" | "EXAMINE", _) => format!(
                         "* 1 EXISTS\r\n* OK [UIDVALIDITY 1] ok\r\n{tag} OK [READ-WRITE] done\r\n"
                     ),
                     ("LOGOUT", _) => format!("* BYE bye\r\n{tag} OK done\r\n"),
