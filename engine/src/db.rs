@@ -48,6 +48,22 @@ mod tests {
     }
 
     #[test]
+    fn every_migration_file_is_registered_with_a_matching_version_and_name() {
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("migrations");
+        let mut files: Vec<String> = std::fs::read_dir(dir)
+            .unwrap()
+            .map(|e| e.unwrap().file_name().into_string().unwrap())
+            .collect();
+        files.sort();
+        let registered: Vec<String> = MIGRATIONS
+            .iter()
+            .map(|m| format!("{:04}_{}.sql", m.version, m.name))
+            .collect();
+        assert_eq!(files, registered);
+        assert!(MIGRATIONS.iter().zip(1..).all(|(m, v)| m.version == v));
+    }
+
+    #[test]
     fn reopening_does_not_reapply_migrations() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("mail.db");

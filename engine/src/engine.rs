@@ -1,21 +1,23 @@
 use std::path::Path;
 
-use crate::{Command, Database, Event, MigrationError};
+use crate::db::Database;
+use crate::{Command, Event, MigrationError};
 
 pub struct Engine {
-    db: Database,
+    schema_version: u32,
 }
 
 impl Engine {
     pub fn open(db_path: &Path) -> Result<Self, MigrationError> {
-        Ok(Self { db: Database::open(db_path)? })
+        let db = Database::open(db_path)?;
+        Ok(Self { schema_version: db.schema_version()? })
     }
 
     pub fn handle(&self, command: Command) -> Event {
         match command {
             Command::Ping { message } => Event::Pong {
                 message,
-                schema_version: self.db.schema_version().unwrap_or(0),
+                schema_version: self.schema_version,
             },
         }
     }

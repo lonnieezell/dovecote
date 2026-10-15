@@ -8,6 +8,5 @@ export default defineConfig({
     command: 'pnpm dev --port 1421',
     url: 'http://localhost:1421',
     env: { VITE_MOCK_ENGINE: '1' },
-    reuseExistingServer: false,
   },
 });
