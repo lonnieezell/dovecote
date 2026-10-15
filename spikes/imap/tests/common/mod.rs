@@ -1,6 +1,9 @@
 //! Helpers shared by the crate tests. Seeding goes over a plain TCP socket, so it does not
 //! depend on the crate under test.
 
+// Each test file compiles this module on its own and uses a different part of it.
+#![allow(dead_code)]
+
 use std::{
     sync::{Arc, Mutex},
     time::{SystemTime, UNIX_EPOCH},
@@ -114,21 +117,20 @@ impl FakeGmail {
                 }
                 let line = line.trim_end().to_string();
                 seen.lock().unwrap().push(line.clone());
-                let tag = line.split_whitespace().next().unwrap_or("*").to_string();
-                let upper = line.to_uppercase();
-                let reply = if upper.contains("UID FETCH") {
-                    format!(
+                let mut words = line.split_whitespace();
+                let tag = words.next().unwrap_or("*").to_string();
+                let command = words.next().unwrap_or("").to_uppercase();
+                let second = words.next().unwrap_or("").to_uppercase();
+                let reply = match (command.as_str(), second.as_str()) {
+                    ("UID", "FETCH") => format!(
                         "* 1 FETCH (UID 1 X-GM-MSGID {GMAIL_MSG_ID} X-GM-THRID {GMAIL_THR_ID} \
                          X-GM-LABELS (\"\\\\Inbox\" Work))\r\n{tag} OK done\r\n"
-                    )
-                } else if upper.contains("SELECT") {
-                    format!(
+                    ),
+                    ("SELECT", _) => format!(
                         "* 1 EXISTS\r\n* OK [UIDVALIDITY 1] ok\r\n{tag} OK [READ-WRITE] done\r\n"
-                    )
-                } else if upper.contains("LOGOUT") {
-                    format!("* BYE bye\r\n{tag} OK done\r\n")
-                } else {
-                    format!("{tag} OK done\r\n")
+                    ),
+                    ("LOGOUT", _) => format!("* BYE bye\r\n{tag} OK done\r\n"),
+                    _ => format!("{tag} OK done\r\n"),
                 };
                 reader.get_mut().write_all(reply.as_bytes()).await.unwrap();
             }

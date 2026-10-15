@@ -9,7 +9,7 @@ use imap_next::{
         command::{Command, CommandBody, FetchModifier, SelectParameter},
         core::Tag,
         fetch::{MessageDataItem, MessageDataItemName},
-        response::{Code, Data, Status},
+        response::{Code, Data, Status, StatusKind},
         sequence::SequenceSet,
     },
     stream::{Error, Stream},
@@ -54,7 +54,7 @@ impl Conn {
             match self.stream.next(&mut self.client).await.unwrap() {
                 Event::DataReceived { data } => reply.data.push(data),
                 Event::StatusReceived { status: Status::Tagged(tagged) } if tagged.tag == tag => {
-                    assert_eq!(format!("{:?}", tagged.body.kind), "Ok", "{:?}", tagged.body);
+                    assert_eq!(tagged.body.kind, StatusKind::Ok, "{:?}", tagged.body);
                     return reply;
                 }
                 Event::StatusReceived { status } => reply.untagged.push(status),

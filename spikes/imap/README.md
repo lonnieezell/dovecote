@@ -4,7 +4,7 @@ Compares `async-imap` and `imap-next` against a Dovecot container. The result is
 `docs/adr/0001-imap-crate.md`. This crate is throwaway: the engine does not depend on it.
 
 ```sh
-docker compose -f spikes/imap/docker-compose.yml up -d   # Dovecot on 127.0.0.1:31143
+docker compose -f spikes/imap/docker-compose.yml up -d --wait   # Dovecot on 127.0.0.1:31143
 cargo test -p imap-spike                                  # both crates, same scenarios
 cargo run --release -p imap-spike --example idle_memory -- async-imap 20
 ```

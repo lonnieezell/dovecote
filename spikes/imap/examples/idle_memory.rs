@@ -30,7 +30,6 @@ async fn hold_with_async_imap(addr: &str, hold: Duration) {
     idle.init().await.unwrap();
     let (wait, _stop) = idle.wait_with_timeout(hold + Duration::from_secs(5));
     let _ = tokio::time::timeout(hold, wait).await;
-    println!("rss_kb_after_hold={}", rss_kb());
 }
 
 async fn hold_with_imap_next(addr: &str, hold: Duration) {
@@ -59,7 +58,6 @@ async fn hold_with_imap_next(addr: &str, hold: Duration) {
         }
     };
     let _ = tokio::time::timeout(hold, hold_for).await;
-    println!("rss_kb_after_hold={}", rss_kb());
 }
 
 #[tokio::main]
@@ -73,10 +71,10 @@ async fn main() {
     match which.as_str() {
         "baseline" => {
             sleep(hold).await;
-            println!("rss_kb_after_hold={}", rss_kb());
-        }
+                }
         "async-imap" => hold_with_async_imap(&addr, hold).await,
         "imap-next" => hold_with_imap_next(&addr, hold).await,
         other => panic!("unknown mode {other}"),
     }
+    println!("rss_kb_after_hold={}", rss_kb());
 }

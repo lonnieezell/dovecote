@@ -10,7 +10,7 @@ publish = false
 async-imap = { version = "0.12", default-features = false, features = ["runtime-tokio"] }
 imap-proto = "0.17"
 imap-next = { version = "0.3", features = ["stream", "expose_stream", "ext_condstore_qresync"] }
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "io-util", "time"] }
 futures = "0.3"
 # imap-codec 2.0.0-alpha.9 uses nom 7 with default features off and never turns on `alloc`,
 # so it does not build alone. This line is the workaround.
