@@ -1,0 +1,15 @@
+[package]
+name = "dovecote"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "dovecote_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+dovecote-engine = { path = "../engine" }
+tauri = { version = "2", features = [] }
