@@ -4,22 +4,10 @@ use std::time::Duration;
 
 use async_imap::extensions::idle::IdleResponse;
 use common::{
-    addr, sample_message, unique_user, FakeGmail, Seeder, GMAIL_MSG_ID, GMAIL_THR_ID, PASSWORD,
+    addr, login, sample_message, unique_user, FakeGmail, Seeder, GMAIL_MSG_ID, GMAIL_THR_ID,
 };
 use futures::TryStreamExt;
 use imap_proto::{AttributeValue, Response};
-use tokio::net::TcpStream;
-
-type Session = async_imap::Session<TcpStream>;
-
-async fn login(addr: &str, user: &str) -> Session {
-    let client = async_imap::Client::new(TcpStream::connect(addr).await.unwrap());
-    client
-        .login(user, PASSWORD)
-        .await
-        .map_err(|(e, _)| e)
-        .unwrap()
-}
 
 #[tokio::test]
 async fn connects_and_fetches_a_message() {
