@@ -18,8 +18,9 @@ Dovecot has no Gmail extensions, so the `X-GM-*` tests run against a small fake 
 ## Probing a real account
 
 The `probe` example checks a real account over TLS. It prints the server's capabilities, its
-folders with their special-use flags, and on Gmail the `X-GM-*` values of the newest INBOX
-message. It only reads. Credentials come from the environment, so they stay out of the code
+folders with their special-use flags, and on Gmail the `X-GM-*` values of the last 10 INBOX
+messages. Use a test account with a reply thread in it, so the output can show a shared
+`X-GM-THRID`. It only reads. Credentials come from the environment, so they stay out of the code
 and the shell history if you `read -s` them first.
 
 ```sh

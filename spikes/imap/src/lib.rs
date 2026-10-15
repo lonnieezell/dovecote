@@ -47,13 +47,18 @@ where
         writeln!(report, "Gmail fetch: skipped").unwrap();
         return Ok(report);
     }
-    if session.examine("INBOX").await?.exists == 0 {
+    let exists = session.examine("INBOX").await?.exists;
+    if exists == 0 {
         writeln!(report, "Gmail fetch: INBOX is empty").unwrap();
         return Ok(report);
     }
+    // The last 10 messages, so a reply in a thread can show a shared X-GM-THRID.
     // `Fetch` has no accessor for X-GM-THRID, so read the parsed attributes directly.
+    let first = exists.saturating_sub(9).max(1);
     session
-        .run_command("UID FETCH * (UID X-GM-MSGID X-GM-THRID X-GM-LABELS)")
+        .run_command(format!(
+            "FETCH {first}:* (UID X-GM-MSGID X-GM-THRID X-GM-LABELS)"
+        ))
         .await?;
     while let Some(data) = session.read_response().await? {
         match data.parsed() {

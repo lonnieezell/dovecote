@@ -145,7 +145,7 @@ impl FakeGmail {
                 let command = words.next().unwrap_or("").to_uppercase();
                 let second = words.next().unwrap_or("").to_uppercase();
                 let reply = match (command.as_str(), second.as_str()) {
-                    ("UID", "FETCH") => format!(
+                    ("UID", "FETCH") | ("FETCH", _) => format!(
                         "* 1 FETCH (UID 1 X-GM-MSGID {GMAIL_MSG_ID} X-GM-THRID {GMAIL_THR_ID} \
                          X-GM-LABELS (\"\\\\Inbox\" Work))\r\n{tag} OK done\r\n"
                     ),

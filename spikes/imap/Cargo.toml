@@ -11,8 +11,8 @@ tokio = "1"
 
 [dev-dependencies]
 imap-proto = "0.17"
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "io-util", "time"] }
 imap-next = { version = "0.3", features = ["stream", "expose_stream", "ext_condstore_qresync"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "io-util", "time"] }
 tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12"] }
 webpki-roots = "1"
 # imap-codec 2.0.0-alpha.9 uses nom 7 with default features off and never turns on `alloc`,

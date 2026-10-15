@@ -39,6 +39,8 @@ async fn reports_gmail_ids_and_labels() {
         assert!(report.contains(&line), "missing {line:?} in:\n{report}");
     }
     let sent = gmail.commands.lock().unwrap().join("\n");
+    // The fake INBOX holds one message, so the last-10 range starts at 1.
+    assert!(sent.contains(" FETCH 1:* ("), "{sent}");
     assert!(
         sent.contains("EXAMINE") && !sent.contains("SELECT"),
         "must not open INBOX read-write:\n{sent}"
