@@ -35,10 +35,17 @@
   /* Text on a --text colored fill, such as a primary button. */
   --on-inverse: light-dark(#f5eee2, #1f1813);
 
-  /* The same in both modes, as drawn in the design. */
+  /* Account dots, the same in both modes. Pick them in order: each one is as far from the
+     earlier ones as possible. 1 to 3 are from the design and are light, so they fall under 3:1
+     on some surfaces; show the account name beside them. 4 to 8 reach 3:1 on every surface. */
   --account-1: #e5776a;
   --account-2: #e9b84f;
   --account-3: #8dbe6a;
+  --account-4: #3980c6;
+  --account-5: #c04bcb;
+  --account-6: #298e3a;
+  --account-7: #9c772d;
+  --account-8: #cd5185;
 }
 
 :root[data-theme='light'] {
