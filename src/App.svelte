@@ -5,6 +5,7 @@
 
   let engine: EngineClient | undefined = $state();
   let reply: EngineEvent | undefined = $state();
+  let error: string | undefined = $state();
 
   onMount(() => {
     let stop: (() => void) | undefined;
@@ -17,7 +18,7 @@
         stop = off;
         engine = client;
       }
-    })();
+    })().catch((e) => (error = String(e)));
     return () => {
       gone = true;
       stop?.();
@@ -33,6 +34,9 @@
     <button disabled={!engine} onclick={() => engine?.send({ type: 'ping', message: 'hello' })}>
       Ping engine
     </button>
+    {#if error}
+      <p role="alert">Could not reach the engine: {error}</p>
+    {/if}
     {#if reply}
       <p data-testid="engine-reply">Engine replied: {reply.message} (schema {reply.schemaVersion})</p>
     {/if}
