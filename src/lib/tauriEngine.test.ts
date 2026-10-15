@@ -3,10 +3,11 @@ import { tauriEngine } from './tauriEngine';
 import type { EngineEvent } from './protocol';
 
 describe('tauriEngine', () => {
-  it('sends a command through the send_command Tauri command', async () => {
-    const invoke = vi.fn().mockResolvedValue(undefined);
+  it('sends a command through the send_command Tauri command and returns its answer', async () => {
+    const pong: EngineEvent = { type: 'pong', message: 'hi', schemaVersion: 1 };
+    const invoke = vi.fn().mockResolvedValue([pong]);
     const engine = tauriEngine(invoke, vi.fn());
-    await engine.send({ type: 'ping', message: 'hi' });
+    expect(await engine.send({ type: 'ping', message: 'hi' })).toEqual([pong]);
     expect(invoke).toHaveBeenCalledWith('send_command', { command: { type: 'ping', message: 'hi' } });
   });
 

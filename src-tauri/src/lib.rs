@@ -1,14 +1,22 @@
-use std::sync::Mutex;
+use std::sync::Arc;
 
-use dovecote_engine::{Command, Engine};
+use dovecote_engine::{Command, Engine, Event, Keychain};
 use tauri::{AppHandle, Emitter, Manager, State};
 
-struct EngineState(Mutex<Engine>);
-
+/// Returns the events that answer the command to the caller, and broadcasts them too.
+/// The command has already taken effect, so a failed broadcast must not turn it into an error.
 #[tauri::command]
-fn send_command(app: AppHandle, state: State<EngineState>, command: Command) -> Result<(), String> {
-    let event = state.0.lock().map_err(|e| e.to_string())?.handle(command);
-    app.emit("engine-event", event).map_err(|e| e.to_string())
+async fn send_command(
+    app: AppHandle,
+    engine: State<'_, Engine>,
+    command: Command,
+) -> Result<Vec<Event>, String> {
+    // Tauri requires a Result from an async command that borrows its state. It never fails.
+    let events = engine.handle(command).await;
+    for event in &events {
+        let _ = app.emit("engine-event", event);
+    }
+    Ok(events)
 }
 
 pub fn run() {
@@ -16,7 +24,8 @@ pub fn run() {
         .setup(|app| {
             let dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&dir)?;
-            app.manage(EngineState(Mutex::new(Engine::open(&dir.join("mail.db"))?)));
+            let keychain = Arc::new(Keychain::new(&app.config().identifier));
+            app.manage(Engine::open(&dir.join("mail.db"), keychain)?);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![send_command])
